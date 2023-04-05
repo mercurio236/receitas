@@ -1,0 +1,5 @@
+json-server --watch -d 180 --host 192.168.15.15 db.json
+
+=========================================
+fake api
+npm i -g json-server 
