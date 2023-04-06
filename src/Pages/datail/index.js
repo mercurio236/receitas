@@ -7,7 +7,7 @@ import {
   ScrollView,
   Image,
   Modal,
-  Share
+  Share,
 } from "react-native";
 
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -15,40 +15,58 @@ import { Entypo, AntDesign, Feather } from "@expo/vector-icons";
 import { Ingredients } from "../../components/ingredients";
 import { Instruction } from "../../components/instruction";
 import { Video } from "../../components/video";
+import { isFavorite, saveFavorites, removeItem } from "../../utils/storage";
 
 export const Detail = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const [showVideo, setShowVideo] = useState(false);
+  const [favorite, setFavorite] = useState(false);
   const { data } = route.params;
 
   useLayoutEffect(() => {
+    async function getStatusFavorites() {
+      const receipeFavorites = await isFavorite(data);
+      setFavorite(receipeFavorites);
+    }
+    getStatusFavorites();
+
     navigation.setOptions({
       title: data?.name ? data?.name : "",
       headerRight: () => (
-        <Pressable
-          onPress={() => {
-            console.log("aqui");
-          }}
-        >
-          <Entypo name="heart" size={28} color="#FF4141" />
+        <Pressable onPress={() => handleFavoritereceipe(data)}>
+          {favorite ? (
+            <Entypo name="heart" size={28} color="#FF4141" />
+          ) : (
+            <Entypo name="heart-outlined" size={28} color="#FF4141" />
+          )}
         </Pressable>
       ),
     });
-  }, [navigation, data]);
+  }, [navigation, data, favorite]);
+
+  async function handleFavoritereceipe(receita) {
+    if (favorite) {
+      await removeItem(receita.id);
+      setFavorite(false)
+    }else{
+      await saveFavorites('@appreceitas', receita)
+      setFavorite(true)
+    }
+  }
 
   function handleOpenVideo() {
     setShowVideo(true);
   }
 
- async function shareReceipe(){
-    try{
+  async function shareReceipe() {
+    try {
       await Share.share({
-        url:'',
-        message:`Receita: ${data.name}`
-      })
-    }catch(err){
-      console.log(err)
+        url: "",
+        message: `Receita: ${data.name}`,
+      });
+    } catch (err) {
+      console.log(err);
     }
   }
 
